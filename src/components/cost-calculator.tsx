@@ -20,6 +20,10 @@ enum Frequency {
 
 class CostCalculator extends React.Component<CostCalculatorProps, CostCalculatorState> {
 
+  static readonly DAY_OF_WORK_PER_YEAR = 261;
+  static readonly WEEK_PER_YEAR = 52 - 4; // 4 week of vacation
+  static readonly HOUR_OF_WORK_PER_DAY = 8;
+
   constructor(props: any) {
     super(props);
 
@@ -45,6 +49,26 @@ class CostCalculator extends React.Component<CostCalculatorProps, CostCalculator
     this.setState({...this.state, frequency: value})
   }
 
+  computeHourlyEmployeeCost(): number {
+    return this.state.averageSalary / CostCalculator.DAY_OF_WORK_PER_YEAR / CostCalculator.HOUR_OF_WORK_PER_DAY;
+  }
+
+  computeCostPerMeeting(): number {
+    return this.computeHourlyEmployeeCost() * this.state.amountPeople * this.state.meetingDuration;
+  }
+
+  computeYearlyCostOfMeeting(): number {
+    let timePerYear;
+    switch (this.state.frequency) {
+      case Frequency.DAIlY: timePerYear = CostCalculator.DAY_OF_WORK_PER_YEAR; break;
+      case Frequency.WEEKLY: timePerYear = CostCalculator.WEEK_PER_YEAR; break;
+      case Frequency.MONTHLY: timePerYear = 12; break;
+      case Frequency.YEARLY: timePerYear = 1; break;
+    }
+
+    return this.computeCostPerMeeting() * timePerYear;
+  }
+
   render() {
     return (
       <>
@@ -67,7 +91,9 @@ class CostCalculator extends React.Component<CostCalculatorProps, CostCalculator
           </select>
         </form>
 
-        <p>@TODO computed result</p>
+        <p>The average cost per hour per employee is <strong>CHF {this.computeHourlyEmployeeCost().toFixed(2)}</strong>.</p>
+        <p>The average cost per meeting is <strong>CHF {this.computeCostPerMeeting().toFixed(2)}</strong>.</p>
+        <p>Considering its frequency, it costs <strong>CHF {this.computeYearlyCostOfMeeting().toFixed(2)}</strong> per year.</p>
       </>
     );
   }
